@@ -26,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Menu items.
 const items = [
   {
     title: "Home",
@@ -35,7 +34,7 @@ const items = [
   },
   {
     title: "Integrations",
-    url: "integrations",
+    url: "/integrations",
     icon: Puzzle,
   },
   {
@@ -44,13 +43,8 @@ const items = [
     icon: Calendar,
   },
   {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
     title: "Settings",
-    url: "settings",
+    url: "/settings",
     icon: Settings,
   },
 ];

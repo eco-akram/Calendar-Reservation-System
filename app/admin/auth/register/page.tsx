@@ -20,7 +20,7 @@ export default async function page() {
     if (user) {
       redirect('/admin')
     }
-   
+
   return (
     <main className="w-full ">
       <Header title="Admin Register" />

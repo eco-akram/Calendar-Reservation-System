@@ -15,20 +15,27 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signup } from "@/lib/actions";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Invalid email address." }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  }).refine((data) => data.password === data.confirmPassword, {
+const formSchema = z
+  .object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Invalid email address." }),
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters." }),
+    confirmPassword: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
     message: "Passwords must match.",
-});
+  });
 
 export default function RegisterForm() {
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,7 +53,13 @@ export default function RegisterForm() {
     formData.append("email", values.email);
     formData.append("password", values.password);
 
-    await signup(formData); // Call the signup function
+    const error = await signup(formData);
+    if (error) {
+      toast.error(error);
+    } else {
+      toast.success("Registration successful! Please confirm your email.");
+      router.push("/"); // Redirect to the dashboard
+    }
   }
 
   return (

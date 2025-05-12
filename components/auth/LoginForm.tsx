@@ -1,22 +1,22 @@
 "use client";
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner"
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { login, signup } from "@/lib/actions";
+import { login } from "@/lib/actions";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -26,6 +26,7 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
+  const router = useRouter();
   //* 1. Define your form.
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,7 +44,13 @@ export default function LoginForm() {
     formData.append("email", values.email);
     formData.append("password", values.password);
 
-    await login(formData);
+    const error = await login(formData); 
+    if (error) {
+      toast.error(error); 
+    } else {
+      toast.success("Login successful!");
+      router.push("/admin"); // Redirect to the dashboard
+    }
   }
 
   return (
