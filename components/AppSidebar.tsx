@@ -1,3 +1,4 @@
+"use client";
 import {
   Calendar,
   ChevronDown,
@@ -25,6 +26,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CalendarWithSettings, getCalendars } from "@/lib/actions";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const items = [
   {
@@ -50,6 +54,42 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const [calendars, setCalendars] = useState<CalendarWithSettings[]>([]);
+  const [calendarCount, setCalendarCount] = useState(0);
+  const [selectedCalendar, setSelectedCalendar] =
+    useState<CalendarWithSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchCalendars() {
+      try {
+        const data = await getCalendars();
+        setCalendarCount(data.length);
+        setCalendars(data);
+
+        console.log("Fetched calendars:", data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch calendars"
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCalendars();
+  }, []);
+
+  if (loading) {
+    console.log("Loading calendars in the Sidebar...");
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -57,7 +97,6 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-
                 <SidebarMenuButton
                   size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -66,14 +105,36 @@ export function AppSidebar() {
                     <Calendar className="size-4" />
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-semibold">Pasirinktas kalendorius</span>
-                    <span className="">Klaipedos Dermotologijos Klinika</span>
+                    <span className="font-semibold">
+                      {selectedCalendar
+                        ? selectedCalendar.name
+                        : "Pasirinkite kalendorių"}
+                    </span>
+                    <span className="">
+                      {selectedCalendar?.description ||
+                        calendarCount + " kalendorių"}
+                    </span>
                   </div>
                   <ChevronsUpDown className="ml-auto" />
                 </SidebarMenuButton>
-
               </DropdownMenuTrigger>
 
+              <DropdownMenuContent className="w-[250px]">
+                {calendars.map((calendar) => (
+                  <DropdownMenuItem
+                    key={calendar.id}
+                    onClick={() => {
+                      setSelectedCalendar(calendar); // Update the selected calendar
+                      router.push(`/calendar/${calendar.id}`); // Redirect to the calendar's page
+                    }}
+                  >
+                    <div className="flex flex-col gap-0.5 leading-none">
+                      <span className="font-semibold">{calendar.name}</span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+              {/* 
               <DropdownMenuContent className="w-[250px]">
                 <DropdownMenuItem>
                   <span>Acme Inc</span>
@@ -81,8 +142,7 @@ export function AppSidebar() {
                 <DropdownMenuItem>
                   <span>Acme Corp.</span>
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-
+              </DropdownMenuContent> */}
             </DropdownMenu>
           </SidebarMenuItem>
           <SidebarMenu>

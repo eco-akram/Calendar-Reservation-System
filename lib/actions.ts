@@ -51,3 +51,61 @@ export async function logout(): Promise<void> {
     throw new Error(error.message);
   }
 }
+
+export type CalendarWithSettings = {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  settings: [{
+    id: string;
+    slot_duration_minutes: number;
+    allow_multiple_bookings: boolean;
+    min_booking_notice_hours: number;
+    max_booking_days_ahead: number;
+    custom_field_1_label: string | null;
+    custom_field_2_label: string | null;
+    custom_field_3_label: string | null;
+    custom_field_4_label: string | null;
+  } ]| null;
+};
+
+export async function getCalendars(): Promise<CalendarWithSettings[]> {
+  const supabase = await createClient();
+
+  const { data: calendars, error } = await supabase
+    .from('calendars')
+    .select(`
+      *,
+      settings:calendar_settings(*)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching calendars:', error.message);
+    throw new Error('Failed to fetch calendars');
+  }
+
+  return calendars;
+}
+
+export async function getCalendarById(id: string): Promise<CalendarWithSettings | null> {
+  const supabase = await createClient();
+
+  const { data: calendar, error } = await supabase
+    .from('calendars')
+    .select(`
+      *,
+      settings:calendar_settings(*)
+    `)
+    .eq('id', id)
+    .single(); 
+
+  if (error) {
+    console.error('Error fetching calendar by ID:', error.message);
+    throw new Error('Failed to fetch calendar');
+  }
+
+  return calendar;
+}
