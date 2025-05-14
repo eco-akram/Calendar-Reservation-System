@@ -1,10 +1,6 @@
 "use client";
 import React from "react";
 
-import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import ltLocale from "@fullcalendar/core/locales/lt";
 import { useEffect, useState } from "react";
 import { getCalendars, type CalendarWithSettings } from "@/lib/actions";
 import Link from "next/link";
@@ -74,16 +70,4 @@ export default function CalendarList() {
     </div>
   );
 }
-{
-  /*       <FullCalendar
-        plugins={[timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        locale={ltLocale}
-        firstDay={1}
-        height="auto"
-        nowIndicator={true}
-        selectable={true}
-                 select={handleSelect}
-        events={fetchEventsFromSupabase} 
-      /> */
-}
+

@@ -112,7 +112,7 @@ export function AppSidebar() {
                     </span>
                     <span className="">
                       {selectedCalendar?.description ||
-                        calendarCount + " kalendorių"}
+                        calendarCount + " kalendorių / kalendoriai (fix)"}
                     </span>
                   </div>
                   <ChevronsUpDown className="ml-auto" />
@@ -134,15 +134,6 @@ export function AppSidebar() {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
-              {/* 
-              <DropdownMenuContent className="w-[250px]">
-                <DropdownMenuItem>
-                  <span>Acme Inc</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Acme Corp.</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent> */}
             </DropdownMenu>
           </SidebarMenuItem>
           <SidebarMenu>

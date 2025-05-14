@@ -109,3 +109,88 @@ export async function getCalendarById(id: string): Promise<CalendarWithSettings 
 
   return calendar;
 }
+
+export type CalendarSettings = {
+    id: string;
+    slot_duration_minutes: number;
+    allow_multiple_bookings: boolean;
+    min_booking_notice_hours: number;
+    max_booking_days_ahead: number;
+    custom_field_1_label: string | null;
+    custom_field_2_label: string | null;
+    custom_field_3_label: string | null;
+    custom_field_4_label: string | null;
+};
+
+export async function getCalendarSettingsById(id: string): Promise<CalendarSettings | null> {
+  const supabase = await createClient();
+
+  const { data: settings, error } = await supabase
+    .from('calendar_settings')
+    .select(`
+      *
+    `)
+    .eq('calendar_id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching calendar by ID:', error.message);
+    throw new Error('Failed to fetch calendar');
+  }
+
+  return settings;
+}
+
+export type SpecialDays = {
+  id: string;
+  calendar_id: string;
+  date: Date;
+  is_working_day: boolean;
+  special_start_time: string | null;
+  special_end_time: string | null;
+  description: string | null;
+};
+
+export async function getSpecialDaysById(id: string): Promise<SpecialDays[]> {
+  const supabase = await createClient();
+
+  const { data: special_days, error } = await supabase
+    .from('special_days')
+    .select(`
+      *
+    `)
+    .eq('calendar_id', id)
+
+  if (error) {
+    console.error('Error fetching special days:', error.message);
+    throw new Error('Failed to fetch special days');
+  }
+
+  return special_days;
+}
+
+export type WorkingHours = {
+  id: string;
+  calendar_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+};
+
+export async function getWorkingHoursById(id: string): Promise<WorkingHours[]> {
+  const supabase = await createClient();
+
+  const { data: working_hours, error } = await supabase
+    .from('working_hours')
+    .select(`
+      *
+    `)
+    .eq('calendar_id', id)
+
+  if (error) {
+    console.error('Error fetching special days:', error.message);
+    throw new Error('Failed to fetch special days');
+  }
+
+  return working_hours;
+}
