@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function CalendarPage() {
   const params = useParams();
@@ -49,8 +50,27 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="p-4" suppressHydrationWarning>
+    <div className="p-4 flex flex-row justify-items-center gap-4 border rounded-lg" suppressHydrationWarning>
+      <div className="p-4 border rounded-lg">
+        <h1 className="text-2xl font-bold mb-4">{calendar.name}</h1>
+        {calendar.description && <p className="mb-2">{calendar.description}</p>}
+        {calendar.settings && calendar.settings.length > 0 && (
+          <div className="text-sm text-gray-500">
+            {calendar.settings.map((setting, index) => (
+              <div key={index} className="mb-2">
+                <p>Slot duration: {setting.slot_duration_minutes} minutes</p>
+                <p>
+                  Multiple bookings:{" "}
+                  {setting.allow_multiple_bookings ? "Allowed" : "Not allowed"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <Calendar
+        className="rounded-md border shadow"
         mode="single"
         selected={selectedDate}
         onSelect={setSelectedDate}
@@ -74,24 +94,19 @@ export default function CalendarPage() {
             noWorkDays.includes(dayOfWeek)
           );
         }}
-        className="rounded-md border shadow"
       />
 
-      <h1 className="text-2xl font-bold mb-4">{calendar.name}</h1>
-      {calendar.description && <p className="mb-2">{calendar.description}</p>}
-      {calendar.settings && calendar.settings.length > 0 && (
-        <div className="text-sm text-gray-500">
-          {calendar.settings.map((setting, index) => (
-            <div key={index} className="mb-2">
-              <p>Slot duration: {setting.slot_duration_minutes} minutes</p>
-              <p>
-                Multiple bookings:{" "}
-                {setting.allow_multiple_bookings ? "Allowed" : "Not allowed"}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="p-4 flex flex-col gap-2 border rounded-lg">
+        <Button>
+          <p>16:30-17:00</p>
+        </Button>
+        <Button>
+          <p>17:00-17:30</p>
+        </Button>
+        <Button>
+          <p>17:30-18:00</p>
+        </Button>
+      </div>
     </div>
   );
 }
