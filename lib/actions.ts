@@ -188,9 +188,41 @@ export async function getWorkingHoursById(id: string): Promise<WorkingHours[]> {
     .eq('calendar_id', id)
 
   if (error) {
-    console.error('Error fetching special days:', error.message);
-    throw new Error('Failed to fetch special days');
+    console.error('Error fetching working hours:', error.message);
+    throw new Error('Failed to fetch working hours');
   }
 
   return working_hours;
+}
+
+export type Reservations = {
+  id: string;
+  calendar_id: string;
+  start_time: Date;
+  end_time: Date;
+  customer_name: string;
+  customer_email: string | null;
+  customer_phone: string | null;
+  custom_field_1: string | null;
+  custom_field_2: string | null;
+  custom_field_3: string | null;
+  custom_field_4: string | null;
+};
+
+export async function getReservationsById(id: string): Promise<Reservations[]> {
+  const supabase = await createClient();
+
+  const { data: reservations, error } = await supabase
+    .from('bookings')
+    .select(`
+      *
+    `)
+    .eq('calendar_id', id)
+
+  if (error) {
+    console.error('Error fetching reservations:', error.message);
+    throw new Error('Failed to fetch reservations');
+  }
+
+  return reservations;
 }
