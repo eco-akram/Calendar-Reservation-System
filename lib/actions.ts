@@ -226,3 +226,51 @@ export async function getReservationsById(id: string): Promise<Reservations[]> {
 
   return reservations;
 }
+
+interface CreateReservationData {
+  id?: string;  // Make id optional since it's auto-generated
+  calendar_id: string;
+  start_time: Date;
+  end_time: Date;
+  customer_name: string;
+  customer_email: string | null;
+  customer_phone: string | null;
+  custom_field_1: string | null;
+  custom_field_2: string | null;
+  custom_field_3: string | null;
+  custom_field_4: string | null;
+}
+
+export async function createReservation(data: CreateReservationData) {
+  try {
+    const supabase = await createClient();
+    const { data: reservation, error } = await supabase
+      .from('bookings')
+      .insert([
+        {
+          customer_name: data.customer_name,
+          customer_email: data.customer_email,
+          customer_phone: data.customer_phone,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          calendar_id: data.calendar_id,
+          custom_field_1: data.custom_field_1,
+          custom_field_2: data.custom_field_2,
+          custom_field_3: data.custom_field_3,
+          custom_field_4: data.custom_field_4,
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating reservation:', error);
+      throw error;
+    }
+
+    return reservation;
+  } catch (error) {
+    console.error('Error in createReservation:', error);
+    throw error;
+  }
+}
