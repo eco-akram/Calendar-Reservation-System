@@ -4,7 +4,7 @@ import CalendarList from "@/components/CalendarList";
 
 export default function Home() {
   return (
-    <main className="w-full" >
+    <main className="w-full rounded-3xl bg-background" >
       <Header title="Home" />
       <div className="flex flex-col gap-4 p-4">
         <p>TEXT</p>

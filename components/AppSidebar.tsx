@@ -1,21 +1,15 @@
 "use client";
 import {
   Calendar,
-  ChevronDown,
   ChevronsUpDown,
   Home,
   Puzzle,
-  Search,
   Settings,
 } from "lucide-react";
 
 import {
   Sidebar,
-  SidebarContent,
   SidebarHeader,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -28,26 +22,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CalendarWithSettings, getCalendars } from "@/lib/actions";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const items = [
   {
-    title: "Home",
+    title: "Pradžia",
     url: "/",
     icon: Home,
   },
   {
-    title: "Integrations",
+    title: "Integracijos",
     url: "/integrations",
     icon: Puzzle,
   },
   {
-    title: "Your reservations",
+    title: "Jūsų rezervacijos",
     url: "#",
     icon: Calendar,
   },
   {
-    title: "Settings",
+    title: "Nustatymai",
     url: "/settings",
     icon: Settings,
   },
@@ -55,39 +49,84 @@ const items = [
 
 export function AppSidebar() {
   const [calendars, setCalendars] = useState<CalendarWithSettings[]>([]);
-  const [calendarCount, setCalendarCount] = useState(0);
-  const [selectedCalendar, setSelectedCalendar] =
-    useState<CalendarWithSettings | null>(null);
+  const [selectedCalendar, setSelectedCalendar] = useState<CalendarWithSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     async function fetchCalendars() {
       try {
         const data = await getCalendars();
-        setCalendarCount(data.length);
         setCalendars(data);
 
-        console.log("Fetched calendars:", data);
+        // Get the current path
+        const calendarMatch = pathname.match(/\/calendar\/([^\/]+)/);
+        
+        if (calendarMatch) {
+          // If we're on a calendar page, select that calendar
+          const calendarId = calendarMatch[1];
+          const currentCalendar = data.find(c => c.id === calendarId);
+          if (currentCalendar) {
+            setSelectedCalendar(currentCalendar);
+          }
+        }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch calendars"
-        );
+        setError(err instanceof Error ? err.message : "Failed to fetch calendars");
       } finally {
         setLoading(false);
       }
     }
 
     fetchCalendars();
-  }, []);
+  }, [pathname]);
+
+  const handleCalendarSelect = (calendar: CalendarWithSettings) => {
+    setSelectedCalendar(calendar);
+    router.push(`/calendar/${calendar.id}`);
+  };
 
   if (loading) {
-    console.log("Loading calendars in the Sidebar...");
+    return (
+      <Sidebar>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" disabled>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary/50 text-sidebar-primary-foreground/50">
+                  <Calendar className="size-4" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-semibold">Kraunami kalendoriai...</span>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+      </Sidebar>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <Sidebar>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" disabled>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-red-500/50 text-red-500-foreground">
+                  <Calendar className="size-4" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-semibold text-red-500">Klaida kraunant kalendorius</span>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+      </Sidebar>
+    );
   }
 
   return (
@@ -106,16 +145,13 @@ export function AppSidebar() {
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-semibold">
-                      {selectedCalendar
-                        ? selectedCalendar.name
-                        : "Pasirinkite kalendorių"}
+                      {selectedCalendar ? selectedCalendar.name : "Pasirinkite kalendorių"}
                     </span>
-                    <span className="">
-                      {selectedCalendar?.description ||
-                        calendarCount + " kalendorių / kalendoriai (fix)"}
+                    <span className="text-sm text-muted-foreground">
+                      {calendars.length} kalendori{calendars.length === 1 ? 'us' : 'ai'} prieinami
                     </span>
                   </div>
-                  <ChevronsUpDown className="ml-auto" />
+                  <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
 
@@ -123,13 +159,16 @@ export function AppSidebar() {
                 {calendars.map((calendar) => (
                   <DropdownMenuItem
                     key={calendar.id}
-                    onClick={() => {
-                      setSelectedCalendar(calendar); // Update the selected calendar
-                      router.push(`/calendar/${calendar.id}`); // Redirect to the calendar's page
-                    }}
+                    onClick={() => handleCalendarSelect(calendar)}
+                    className={selectedCalendar?.id === calendar.id ? "bg-accent" : ""}
                   >
                     <div className="flex flex-col gap-0.5 leading-none">
                       <span className="font-semibold">{calendar.name}</span>
+                      {calendar.description && (
+                        <span className="text-sm text-muted-foreground truncate">
+                          {calendar.description}
+                        </span>
+                      )}
                     </div>
                   </DropdownMenuItem>
                 ))}
@@ -141,7 +180,7 @@ export function AppSidebar() {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
                   <a href={item.url}>
-                    <item.icon />
+                    <item.icon className="size-4" />
                     <span>{item.title}</span>
                   </a>
                 </SidebarMenuButton>

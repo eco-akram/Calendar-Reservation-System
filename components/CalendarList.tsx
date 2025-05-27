@@ -30,7 +30,7 @@ export default function CalendarList() {
   }, []);
 
   if (loading) {
-    return <div className="p-4">Loading calendars...</div>;
+    return <div className="p-4">Kraunami kalendoriai...</div>;
   }
 
   if (error) {

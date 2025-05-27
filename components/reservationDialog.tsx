@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -23,19 +22,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ReservationDialogProps {
   slot: { start: Date; end: Date } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   calendar: CalendarWithSettings | null;
+  selectedSlots?: { start: Date; end: Date }[];
 }
 
 const formSchema = z.object({
@@ -46,7 +39,6 @@ const formSchema = z.object({
       message: "Please enter a valid phone number (e.g., +1234567890 or 123-456-7890)"
     })
     .optional(),
-  quantity: z.number().min(1).max(10),
   custom_field_1: z.string().optional(),
   custom_field_2: z.string().optional(),
   custom_field_3: z.string().optional(),
@@ -60,6 +52,7 @@ export function ReservationDialog({
   open,
   onOpenChange,
   calendar,
+  selectedSlots = [],
 }: ReservationDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,7 +62,6 @@ export function ReservationDialog({
       customer_name: "",
       customer_email: "",
       customer_phone: "",
-      quantity: 1,
       custom_field_1: "",
       custom_field_2: "",
       custom_field_3: "",
@@ -89,8 +81,9 @@ export function ReservationDialog({
         custom_field_4: values.custom_field_4 ? `${settings.custom_field_4_label}: ${values.custom_field_4}` : null,
       };
 
-      // Create multiple reservations based on quantity
-      const reservations = Array.from({ length: values.quantity }, () => ({
+      // Create reservations for all selected slots
+      const slotsToBook = selectedSlots.length > 0 ? selectedSlots : [slot];
+      const reservations = slotsToBook.map(slot => ({
         customer_name: values.customer_name,
         customer_email: values.customer_email,
         customer_phone: values.customer_phone || null,
@@ -104,7 +97,7 @@ export function ReservationDialog({
       await Promise.all(reservations.map(reservation => createReservation(reservation)));
 
       toast.success("Reservations Created", {
-        description: `Successfully created ${values.quantity} reservation${values.quantity > 1 ? 's' : ''}.`,
+        description: `Successfully created ${reservations.length} reservation${reservations.length > 1 ? 's' : ''}.`,
       });
 
       onOpenChange(false);
@@ -129,10 +122,26 @@ export function ReservationDialog({
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <DialogHeader>
               <DialogTitle>Make a Reservation</DialogTitle>
-              <DialogDescription>
-                Book your time slot for {format(slot.start, "MMMM d, yyyy")} from{" "}
-                {format(slot.start, "HH:mm")} to {format(slot.end, "HH:mm")}
-              </DialogDescription>
+              <div className="text-sm text-muted-foreground">
+                {selectedSlots.length > 0 ? (
+                  <>
+                    <p>Booking {selectedSlots.length} time slot{selectedSlots.length > 1 ? 's' : ''}:</p>
+                    <ul className="mt-2 list-disc list-inside">
+                      {selectedSlots.map((slot, index) => (
+                        <li key={index}>
+                          {format(slot.start, "MMMM d, yyyy")} from{" "}
+                          {format(slot.start, "HH:mm")} to {format(slot.end, "HH:mm")}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p>
+                    Book your time slot for {format(slot.start, "MMMM d, yyyy")} from{" "}
+                    {format(slot.start, "HH:mm")} to {format(slot.end, "HH:mm")}
+                  </p>
+                )}
+              </div>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <FormField
@@ -187,36 +196,6 @@ export function ReservationDialog({
                   </FormItem>
                 )}
               />
-
-              {settings.allow_multiple_bookings && (
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                      <FormLabel className="text-right">Quantity</FormLabel>
-                      <Select
-                        onValueChange={(value: string) => field.onChange(parseInt(value))}
-                        defaultValue={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select quantity" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                            <SelectItem key={num} value={num.toString()}>
-                              {num}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="col-span-3 col-start-2" />
-                    </FormItem>
-                  )}
-                />
-              )}
 
               {settings.custom_field_1_label && (
                 <FormField
@@ -304,7 +283,7 @@ export function ReservationDialog({
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Confirm Reservation"}
+                {isSubmitting ? "Creating..." : `Confirm ${selectedSlots.length > 0 ? selectedSlots.length : 1} Reservation${selectedSlots.length > 1 ? 's' : ''}`}
               </Button>
             </DialogFooter>
           </form>

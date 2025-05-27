@@ -41,6 +41,7 @@ export default function CalendarPage() {
   const [interval, setInterval] = useState<number>(0);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<{ start: Date; end: Date }[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -249,8 +250,38 @@ export default function CalendarPage() {
   };
 
   const handleSlotSelect = (slot: { start: Date; end: Date }) => {
-    setSelectedSlot(slot);
-    setDialogOpen(true);
+    if (!calendar?.settings?.[0]?.allow_multiple_bookings) {
+      setSelectedSlot(slot);
+      setDialogOpen(true);
+      return;
+    }
+
+    setSelectedSlots(prev => {
+      const isSelected = prev.some(
+        s => s.start.getTime() === slot.start.getTime() && s.end.getTime() === slot.end.getTime()
+      );
+
+      if (isSelected) {
+        return prev.filter(
+          s => !(s.start.getTime() === slot.start.getTime() && s.end.getTime() === slot.end.getTime())
+        );
+      }
+
+      return [...prev, slot];
+    });
+  };
+
+  const handleConfirmSelection = () => {
+    if (selectedSlots.length > 0) {
+      setSelectedSlot(selectedSlots[0]); // Pass first slot to dialog
+      setDialogOpen(true);
+    }
+  };
+
+  const isSlotSelected = (slot: { start: Date; end: Date }) => {
+    return selectedSlots.some(
+      s => s.start.getTime() === slot.start.getTime() && s.end.getTime() === slot.end.getTime()
+    );
   };
 
   if (!calendar || !disabledDays || !noWorkDays || bookingDays === null) {
@@ -285,7 +316,7 @@ export default function CalendarPage() {
 
   return (
     <main className="h-auto w-full flex items-center justify-center p-4">
-      <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl border rounded-lg shadow-lg p-4">
+      <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl border rounded-lg shadow-lg p-4 bg-card">
         <div className="p-4 border rounded-lg shadow flex-1 min-w-[200px]">
           <h1 className="text-xl font-bold mb-2">{calendar.name}</h1>
           {calendar.description && (
@@ -314,7 +345,6 @@ export default function CalendarPage() {
 
         <div className="flex min-w-[200px]">
           <Calendar
-            className="rounded-md border shadow h-full w-full"
             mode="single"
             selected={selectedDate}
             onSelect={handleDateSelect}
@@ -326,7 +356,6 @@ export default function CalendarPage() {
               bookingEndDate.setDate(today.getDate() + bookingDays);
 
               const dateString = format(date, "yyyy-MM-dd");
-
               const dayOfWeek = date.getDay();
 
               return (
@@ -336,43 +365,61 @@ export default function CalendarPage() {
                 noWorkDays.includes(dayOfWeek)
               );
             }}
+            className="rounded-md border shadow h-full w-full"
           />
         </div>
 
         <div className="p-4 flex flex-col gap-2 border rounded-lg shadow flex-1 min-w-[200px] max-h-[290px] overflow-y-auto">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">
+              {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a date"}
+            </h2>
+            {calendar?.settings?.[0]?.allow_multiple_bookings && selectedSlots.length > 0 && (
+              <Button onClick={handleConfirmSelection} size="sm">
+                Confirm {selectedSlots.length} Slot{selectedSlots.length > 1 ? 's' : ''}
+              </Button>
+            )}
+          </div>
           {slotsLoading ? (
             Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="h-10 w-full bg-gray-800 rounded animate-pulse" />
             ))
-          ) : timeSlots && timeSlots.length > 0 ? (
+          ) : timeSlots ? (
             timeSlots.map((slot, index) => {
-              const isReserved = reservations.length > 0 && isSlotReserved(slot);
-              const startTime = format(slot.start, "HH:mm");
-              const endTime = format(slot.end, "HH:mm");
-
+              const isReserved = isSlotReserved(slot);
+              const isSelected = isSlotSelected(slot);
               return (
                 <Button
                   key={index}
-                  variant={isReserved ? "secondary" : "default"}
+                  variant={isSelected ? "default" : "outline"}
+                  className={`w-full ${
+                    isReserved
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : isSelected
+                      ? "bg-primary text-primary-foreground"
+                      : ""
+                  }`}
                   disabled={isReserved}
-                  className={isReserved ? "opacity-50 cursor-not-allowed" : ""}
                   onClick={() => handleSlotSelect(slot)}
                 >
-                  {startTime}-{endTime}
+                  <Clock className="mr-2 h-4 w-4" />
+                  {format(slot.start, "HH:mm")} - {format(slot.end, "HH:mm")}
                 </Button>
               );
             })
           ) : (
-            <p>No available time slots for this date</p>
+            <p>No available time slots for this date.</p>
           )}
         </div>
-        <ReservationDialog 
-          slot={selectedSlot}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          calendar={calendar}
-        />
       </div>
+
+      <ReservationDialog
+        slot={selectedSlot}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        calendar={calendar}
+        selectedSlots={selectedSlots}
+      />
     </main>
   );
 }
