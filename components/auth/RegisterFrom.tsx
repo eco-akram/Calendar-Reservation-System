@@ -20,18 +20,18 @@ import { toast } from "sonner";
 
 const formSchema = z
   .object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Invalid email address." }),
+    name: z.string().min(3, { message: "Vardas turi būti bent 3 simbolių." }),
+    email: z.string().email({ message: "Neteisingas el. pašto adresas." }),
     password: z
       .string()
-      .min(6, { message: "Password must be at least 6 characters." }),
+      .min(6, { message: "Slaptažodis turi būti bent 6 simbolių." }),
     confirmPassword: z
       .string()
-      .min(6, { message: "Password must be at least 6 characters." }),
+      .min(6, { message: "Slaptažodis turi būti bent 6 simbolių." }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
-    message: "Passwords must match.",
+    message: "Slaptažodžiai turi sutapti.",
   });
 
 export default function RegisterForm() {
@@ -64,8 +64,14 @@ export default function RegisterForm() {
 
   return (
     <main className="flex items-center justify-center">
-      <div className="w-full max-w-md flex flex-col gap-4 p-4 border rounded-lg shadow-lg">
-        <p className="text-center text-2xl font-bold">Create an Account</p>
+      <div className="w-full max-w-md flex flex-col gap-4 p-4 border rounded-lg bg-accent/20 shadow-lg">
+        <div>
+          <p className="text-center text-2xl font-bold">Sukurti paskyrą</p>
+          <p className="text-center text-sm text-muted-foreground">
+            Įveskite savo el. paštą, kad prisijungtumėte prie paskyros
+          </p>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -73,11 +79,11 @@ export default function RegisterForm() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Vardas</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder="Enter your name"
+                      placeholder="Įveskite savo vardą"
                       {...field}
                     />
                   </FormControl>
@@ -90,11 +96,11 @@ export default function RegisterForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>El. paštas</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="Įveskite savo el. paštą"
                       {...field}
                     />
                   </FormControl>
@@ -107,11 +113,11 @@ export default function RegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Slaptažodis</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Įveskite savo slaptažodį"
                       {...field}
                     />
                   </FormControl>
@@ -124,11 +130,11 @@ export default function RegisterForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>Patvirtinkite slaptažodį</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Confirm your password"
+                      placeholder="Patvirtinkite savo slaptažodį"
                       {...field}
                     />
                   </FormControl>
@@ -137,14 +143,14 @@ export default function RegisterForm() {
               )}
             />
             <Button type="submit" className="w-full">
-              Register
+              Registruotis
             </Button>
           </form>
         </Form>
         <div className="text-center text-sm">
-          Already have an account?{" "}
+          Jau turite paskyrą?{" "}
           <Link href="login" className="underline underline-offset-4">
-            Sign in
+            Prisijungti
           </Link>
         </div>
       </div>

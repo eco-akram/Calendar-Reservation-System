@@ -2,27 +2,27 @@
 
 import { logout } from "@/lib/actions";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { LogOut } from "lucide-react";
 
 export default function LogoutButton() {
-  const router = useRouter();
+  const pathname = usePathname();
+
   async function handleLogout() {
     try {
       await logout();
-      toast.success("You have been logged out successfully!"); // Show success toast
-      router.push("/admin/auth/login"); // Redirect to login page after logout
+      toast.success("You have been logged out successfully!");
+      // Ne refreshajet, nado delat hard refresh
+      window.location.href = pathname;
     } catch (error) {
       console.error("Logout failed:", error);
-      toast.error("Failed to log out. Please try again."); // Show error toast
+      toast.error("Failed to log out. Please try again.");
     }
   }
 
   return (
-    <button
-      onClick={handleLogout}
-      className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-    >
-      Log out
+    <button onClick={handleLogout}>
+      <LogOut color="gray" size={15} className="hover:cursor-pointer ml-2" />
     </button>
   );
 }

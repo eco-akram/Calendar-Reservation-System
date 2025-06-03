@@ -203,7 +203,7 @@ export function ReservationDialog({
                   name="custom_field_1"
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-4 items-center gap-4">
-                      <FormLabel className="text-right">
+                      <FormLabel className="text-left">
                         {settings.custom_field_1_label}
                       </FormLabel>
                       <FormControl>
@@ -224,7 +224,7 @@ export function ReservationDialog({
                   name="custom_field_2"
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-4 items-center gap-4">
-                      <FormLabel className="text-right">
+                      <FormLabel className="text-left">
                         {settings.custom_field_2_label}
                       </FormLabel>
                       <FormControl>
@@ -245,7 +245,7 @@ export function ReservationDialog({
                   name="custom_field_3"
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-4 items-center gap-4">
-                      <FormLabel className="text-right">
+                      <FormLabel className="text-left">
                         {settings.custom_field_3_label}
                       </FormLabel>
                       <FormControl>
@@ -266,7 +266,7 @@ export function ReservationDialog({
                   name="custom_field_4"
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-4 items-center gap-4">
-                      <FormLabel className="text-right">
+                      <FormLabel className="text-left">
                         {settings.custom_field_4_label}
                       </FormLabel>
                       <FormControl>

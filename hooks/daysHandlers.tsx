@@ -20,7 +20,7 @@ export async function getInvalidDays(id: string): Promise<number[]> {
   const allDays = [0, 1, 2, 3, 4, 5, 6];
 
   // Find the days that are not in the DB
-  const invalidDays = allDays.filter((day) => !definedDays.includes(day));
+  const invalidDays = allDays.filter((day) => !definedDays.includes(day  ));
 
   // Find the days where start_time and end_time are null
   const noWorkingDay = workingHours

@@ -29,6 +29,12 @@ export async function signup(formData: FormData): Promise<string | null> {
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
+    display_name: formData.get('name') as string,
+    options: {
+        data: {
+          display_name: formData.get('name') as string
+        },
+      },
   }
 
   const { error } = await supabase.auth.signUp(data)
@@ -222,6 +228,23 @@ export async function getReservationsById(id: string): Promise<Reservations[]> {
   if (error) {
     console.error('Error fetching reservations:', error.message);
     throw new Error('Failed to fetch reservations');
+  }
+
+  return reservations;
+}
+
+export async function getAllReservations(): Promise<Reservations[]> {
+  const supabase = await createClient();
+
+  const { data: reservations, error } = await supabase
+    .from('bookings')
+    .select(`
+      *
+    `)
+
+  if (error) {
+    console.error('Error fetching all reservations:', error.message);
+    throw new Error('Failed to fetch all reservations');
   }
 
   return reservations;

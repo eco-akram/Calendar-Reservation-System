@@ -18,13 +18,13 @@ export default async function page() {
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (user) {
-      redirect('/admin')
+      redirect('/')
     }
 
   return (
-    <main className="w-full ">
+    <main className="w-full rounded-3xl m-2 bg-background">
       <Header title="Admin Register" />
-      <div className="flex flex-col gap-4 p-4 mt-50">
+      <div className="flex flex-col w-full gap-4 p-4 mt-35"> 
         <RegisterForm />
       </div>
     </main>

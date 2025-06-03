@@ -14,15 +14,14 @@ export default async function page() {
 
     const supabase = await createClient()
   
-    // Verify user session
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (user) {
-      redirect('/admin')
+      redirect('/')
     }
 
   return (
-    <main className="w-full ">
+    <main className="w-full rounded-3xl m-2 bg-background">
       <Header title="Admin Login" />
       <div className="flex flex-col gap-4 p-4 mt-50">
         <LoginForm />

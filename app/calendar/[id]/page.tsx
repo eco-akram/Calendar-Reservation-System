@@ -286,7 +286,7 @@ export default function CalendarPage() {
 
   if (!calendar || !disabledDays || !noWorkDays || bookingDays === null) {
     return (
-      <main className="h-auto w-full flex items-center justify-center p-4">
+      <main className="h-auto w-full flex items-center justify-center p-4 rounded-3xl bg-background m-2">
         <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl border rounded-lg shadow-lg p-4">
           {/* Info Skeleton */}
           <div className="p-4 border rounded-lg shadow flex-1 min-w-[200px] flex flex-col animate-pulse">
@@ -315,15 +315,16 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="h-auto w-full flex items-center justify-center p-4">
-      <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl border rounded-lg shadow-lg p-4 bg-card">
+    <main className="h-auto w-full flex items-center justify-center p-4 rounded-3xl bg-background m-2">
+{/*       <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl border rounded-xl shadow-lg p-4 bg-gradient-to-t from-accent/20 to-card "> */}
+       <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl border rounded-xl shadow-lg p-4 bg-accent/20 "> 
         <div className="p-4 border rounded-lg shadow flex-1 min-w-[200px]">
           <h1 className="text-xl font-bold mb-2">{calendar.name}</h1>
           {calendar.description && (
-            <p className="mb-2 text-sm">{calendar.description}</p>
+            <p className="mb-2 line-clamp-6 text-sm">{calendar.description}</p>
           )}
           {calendar.settings && calendar.settings.length > 0 && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               {calendar.settings.map((setting, index) => (
                 <div key={index} className="mb-2">
                   <p className="flex items-center gap-2">
@@ -402,8 +403,12 @@ export default function CalendarPage() {
                   disabled={isReserved}
                   onClick={() => handleSlotSelect(slot)}
                 >
-                  <Clock className="mr-2 h-4 w-4" />
-                  {format(slot.start, "HH:mm")} - {format(slot.end, "HH:mm")}
+                  <div className="flex items-center justify-center w-full">
+                    <Clock className="h-4 w-4 flex-shrink-0" />
+                    <span className="flex-1 text-center">
+                      {format(slot.start, "HH:mm")} - {format(slot.end, "HH:mm")}
+                    </span>
+                  </div>
                 </Button>
               );
             })

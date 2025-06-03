@@ -19,10 +19,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
+  email: z.string().email({ message: "Neteisingas el. pašto adresas." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
+    .min(6, { message: "Slaptažodis turi būti bent 6 simbolių." }),
 });
 
 export default function LoginForm() {
@@ -49,19 +49,19 @@ export default function LoginForm() {
       toast.error(error); 
     } else {
       toast.success("Login successful!");
-      router.push("/admin"); // Redirect to the dashboard
+      router.push("/"); // Redirect to the dashboard
     }
   }
 
   return (
-    <main className="flex items-center justify-center">
-      <div className="w-full max-w-md flex flex-col border rounded-lg gap-4 p-4 ">
+    <main className="flex items-center justify-center ">
+      <div className="w-full max-w-md flex flex-col border rounded-lg gap-4 p-4 bg-accent/20 shadow-lg">
         <div>
           <p className="text-center text-2xl font-bold">
-            Login to your admin account
+            Prisijunkite prie savo administratoriaus paskyros
           </p>
           <p className="text-center text-sm text-muted-foreground">
-            Enter your email below to login to your account
+            Įveskite savo el. paštą, kad prisijungtumėte prie paskyros
           </p>
         </div>
         <Form {...form}>
@@ -71,11 +71,11 @@ export default function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>El. paštas</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="Įveskite savo el. paštą"
                       {...field}
                     />
                   </FormControl>
@@ -88,11 +88,11 @@ export default function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Slaptažodis</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Įveskite savo slaptažodį"
                       {...field}
                     />
                   </FormControl>
@@ -101,14 +101,14 @@ export default function LoginForm() {
               )}
             />
             <Button type="submit" className="w-full">
-              Login
+              Prisijungti
             </Button>
           </form>
         </Form>
         <div className="text-center text-sm">
-          Don&apos;t have an account?{" "}
+          Neturite paskyros?{" "}
           <Link href="register" className="underline underline-offset-4">
-            Sign up
+            Registruotis
           </Link>
         </div>
       </div>

@@ -2,11 +2,29 @@
 import React from "react";
 
 import { useEffect, useState } from "react";
-import { getCalendars, type CalendarWithSettings } from "@/lib/actions";
+import {
+  getCalendars,
+  type CalendarWithSettings,
+  getWorkingHoursById,
+} from "@/lib/actions";
 import Link from "next/link";
+import { CalendarPlus, Clock } from "lucide-react";
+
+interface CalendarsWithWorkHours extends CalendarWithSettings {
+  workHours: {
+    id: string;
+    calendar_id: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+  }[];
+}
 
 export default function CalendarList() {
   const [calendars, setCalendars] = useState<CalendarWithSettings[]>([]);
+  const [calendarsWithWorkHours, setCalendarsWithWorkHours] = useState<
+    CalendarsWithWorkHours[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,6 +33,15 @@ export default function CalendarList() {
       try {
         const data = await getCalendars();
         setCalendars(data);
+
+        const calendarsWithWorkHours = await Promise.all(
+          data.map(async (calendar) => {
+            const workHours = await getWorkingHoursById(calendar.id);
+            return { ...calendar, workHours };
+          })
+        );
+
+        setCalendarsWithWorkHours(calendarsWithWorkHours);
 
         console.log("Fetched calendars:", data);
       } catch (err) {
@@ -29,6 +56,16 @@ export default function CalendarList() {
     fetchCalendars();
   }, []);
 
+  const dayMap = [
+    "Sekmadienis",
+    "Pirmadienis",
+    "Antradienis",
+    "Trečiadienis",
+    "Ketvirtadienis",
+    "Penktadienis",
+    "Šeštadienis",
+  ];
+
   if (loading) {
     return <div className="p-4">Kraunami kalendoriai...</div>;
   }
@@ -38,36 +75,85 @@ export default function CalendarList() {
   }
 
   return (
-    <div className="p-4" >
+    <div className="p-4">
       <div className="mb-4">
         <h2 className="text-2xl font-bold mb-2">Available Calendars</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {calendars.map((calendar) => (
-            <Link href={`/calendar/${calendar.id}`} key={calendar.id}>
-              <div className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                <h3 className="text-xl font-semibold mb-2">{calendar.name}</h3>
-                {calendar.description && (
-                  <p className="text-gray-600 mb-2">{calendar.description}</p>
-                )}
-                {calendar.settings && calendar.settings.length > 0 && (
-                  <div className="text-sm text-gray-500">
-                    {calendar.settings.map((setting, index) => (
-                      <div key={index} className="mb-2">
-                        <p>Slot duration: {setting.slot_duration_minutes} minutes</p>
-                        <p>
-                          Multiple bookings:{" "}
-                          {setting.allow_multiple_bookings ? "Allowed" : "Not allowed"}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {calendars.map((calendar) => {
+            const calendarWithHours = calendarsWithWorkHours.find(
+              (c) => c.id === calendar.id
+            );
+            return (
+              <Link href={`/calendar/${calendar.id}`} key={calendar.id}>
+                <div className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-accent/20 h-full">
+                  <div className="flex flex-col h-full">
+                    <div className="mb-4">
+                      <h3 className="text-xl font-semibold mb-2">
+                        {calendar.name}
+                      </h3>
+                      {calendar.description && (
+                        <p className=" line-clamp-3">
+                          {calendar.description}
                         </p>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+
+                    <div className="flex-grow">
+                      {calendar.settings && calendar.settings.length > 0 && (
+                        <div className="text-sm text-muted-foreground mb-4">
+                          {calendar.settings.map((setting, index) => (
+                            <div key={index} className="mb-2">
+                              <p className="flex items-center gap-2">
+                              <Clock size={16} />
+                                Slot duration: {setting.slot_duration_minutes}{" "}
+                                minutes
+                              </p>
+                              <p className="flex items-center gap-2">
+                                           <CalendarPlus size={16}/>
+                                Multiple bookings:{" "}
+                                {setting.allow_multiple_bookings
+                                  ? "Allowed"
+                                  : "Not allowed"}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {calendarWithHours?.workHours && (
+                        <div className="text-sm text-muted-foreground">
+                          <h4 className="font-medium mb-2">Darbo valandos:</h4>
+                          <div className="space-y-1">
+                            {dayMap.map((day, index) => {
+                              const dayHours = calendarWithHours.workHours.find(
+                                (hours) => hours.day_of_week === index
+                              );
+                              return (
+                                <p key={index} className="flex justify-between">
+                                  <span>{day}:</span>
+                                  <span>
+                                    {dayHours ? (
+                                      `${dayHours.start_time} - ${dayHours.end_time}`
+                                    ) : (
+                                      <span className="text-neutral-500 italic">
+                                        Uždaryta
+                                      </span>
+                                    )}
+                                  </span>
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            </Link>
-          ))}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
-

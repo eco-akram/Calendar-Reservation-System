@@ -64,6 +64,14 @@ export async function getDayWorkHours(
   return { startTime, endTime };
 }
 
+export async function getWeekWorkHours(calendarId: string){
+  const allWorkingHours = await getWorkingHoursById(calendarId);
+  const dayWorkingHours = allWorkingHours.find(
+    (day) => day.day_of_week === dayOfWeek
+  );
+
+}
+
 export async function checkForReservations(
   calendarId: string,
   selectedDate: Date

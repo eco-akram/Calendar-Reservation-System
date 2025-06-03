@@ -4,10 +4,14 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import ConfirmHandler from "@/components/auth/ConfirmHandler"; 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { getAllReservations } from "@/lib/actions";
+import { useEffect } from "react";
 
 /* IF NOT ADMIN, THEN LOG IN OR SIGNUP */
 
 export default async function page() {
+  const [reservations, setReservations] = useState([]);
+
   const supabase = await createClient();
 
   // Verify user session
@@ -17,13 +21,22 @@ export default async function page() {
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/admin/auth/login");
+    redirect("/");
   }
 
+  useEffect(() => {
+    first
+  
+    return () => {
+      second
+    }
+  }, [third])
+  
+
   return (
-    <main className="w-full">
+    <main className="w-full rounded-3xl m-2 bg-background">
       <ConfirmHandler />
-      <Header title="Admin Dashboard" />
+      <Header title="Rezervacijos" />
       <div className="flex flex-col gap-4 p-4">
         <p>CALENDAR CAROUSEL</p>
         <div className="grid auto-rows-min gap-4 md:grid-cols-3">
