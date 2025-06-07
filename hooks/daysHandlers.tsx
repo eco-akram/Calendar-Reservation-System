@@ -1,4 +1,3 @@
-import React from "react";
 import {
   getSpecialDaysById,
   getCalendarSettingsById,
@@ -41,11 +40,12 @@ async function getDisabledDays(id: string) {
 
   const settings = await getCalendarSettingsById(id); // Nastrojki s kalendara
   const bookingDays = settings?.max_booking_days_ahead || 0; // Skolko dnej napered
+  const noticeDays = settings?.min_booking_notice_days || 0; // Skolko dnej do
 
   const noWorkHoursDay = await getInvalidDays(id); // Dni bez rabotajushih chasov
 
   //* Return: max booking days ahead, special days. working hours,
-  return { specialDates, bookingDays, noWorkHoursDay };
+  return { specialDates, bookingDays, noWorkHoursDay, noticeDays };
 }
 
 function setDisabledDays(id: string, days: string[]): void {

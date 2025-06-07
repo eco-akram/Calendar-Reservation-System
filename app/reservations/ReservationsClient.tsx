@@ -1,7 +1,6 @@
 "use client";
 
 import Header from "@/components/Header";
-import LogoutButton from "@/components/auth/LogoutButton";
 import ConfirmHandler from "@/components/auth/ConfirmHandler";
 import { getAllReservations, type Reservations } from "@/lib/actions";
 import { useEffect, useState } from "react";
@@ -24,7 +23,6 @@ export default function ReservationsClient() {
       <Header title="Rezervacijos" />
       <div className="flex flex-col gap-4 p-4">
         <ReservationsTable data={reservations} />
-        <LogoutButton />
       </div>
     </main>
   );

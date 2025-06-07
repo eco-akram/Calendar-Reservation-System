@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { type Reservations } from "@/lib/actions";
+import { type Reservations, deleteReservations } from "@/lib/actions";
 import { format, isWithinInterval } from "date-fns";
 import {
   DropdownMenu,
@@ -39,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, CalendarIcon } from "lucide-react";
+import { Download, CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -49,6 +49,8 @@ import {
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { Checkbox } from "@/components/ui/checkbox";
+import ExcelJS from 'exceljs';
+import { toast } from "sonner";
 
 const columns: ColumnDef<Reservations>[] = [
   {
@@ -60,14 +62,12 @@ const columns: ColumnDef<Reservations>[] = [
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value: boolean) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-        aria-label="Select row"
       />
     ),
     enableSorting: false,
@@ -75,41 +75,41 @@ const columns: ColumnDef<Reservations>[] = [
   },
   {
     accessorKey: "customer_name",
-    header: "Customer Name",
+    header: "Kliento vardas",
   },
   {
     accessorKey: "customer_email",
-    header: "Email",
+    header: "El. paštas",
   },
   {
     accessorKey: "customer_phone",
-    header: "Phone",
+    header: "Telefonas",
   },
   {
     accessorKey: "start_time",
-    header: "Start Time",
+    header: "Pradžios laikas",
     cell: ({ row }) => format(new Date(row.getValue("start_time")), "PPp"),
   },
   {
     accessorKey: "end_time",
-    header: "End Time",
+    header: "Pabaigos laikas",
     cell: ({ row }) => format(new Date(row.getValue("end_time")), "PPp"),
   },
   {
     accessorKey: "custom_field_1",
-    header: "Custom Field 1",
+    header: "Papildomas laukas 1",
   },
   {
     accessorKey: "custom_field_2",
-    header: "Custom Field 2",
+    header: "Papildomas laukas 2",
   },
   {
     accessorKey: "custom_field_3",
-    header: "Custom Field 3",
+    header: "Papildomas laukas 3",
   },
   {
     accessorKey: "custom_field_4",
-    header: "Custom Field 4",
+    header: "Papildomas laukas 4",
   },
 ];
 
@@ -132,6 +132,8 @@ export function ReservationsTable({ data }: DataTableProps) {
   });
   const [selectedCalendar, setSelectedCalendar] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Get unique calendar IDs from data
   const calendarIds = useMemo(() => 
@@ -199,42 +201,109 @@ export function ReservationsTable({ data }: DataTableProps) {
     setIsLoading(false);
   };
 
-  const handleDownload = () => {
-    const selectedRows = table.getSelectedRowModel().rows;
-    if (selectedRows.length === 0) return;
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    const sortedRows = table.getSortedRowModel().rows;
+    const selectedSortedRows = sortedRows.filter(row => row.getIsSelected());
 
-    // Get visible columns
-    const visibleColumns = table.getAllColumns().filter(column => column.getIsVisible());
-    
-    // Create CSV header
-    const headers = visibleColumns.map(column => column.id).join(',');
-    
-    // Create CSV rows
-    const rows = selectedRows.map(row => {
-      return visibleColumns.map(column => {
+    if (selectedSortedRows.length === 0) {
+      setIsDownloading(false);
+      return;
+    }
+
+    const visibleColumns = table.getAllColumns().filter(column => column.getIsVisible() && column.id !== 'select');
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Reservations');
+
+    // Add headers
+    const headers = visibleColumns.map(column => column.columnDef.header as string);
+    const headerRow = worksheet.addRow(headers);
+
+    // Apply bold font and background color to header cells
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD966' }, // A light yellow color
+      };
+    });
+
+    // Set column widths
+    worksheet.columns.forEach((column, i) => {
+      const columnDef = visibleColumns[i];
+      const headerText = headers[i];
+
+      // Set different widths based on column ID
+      if (columnDef.id === 'customer_name' || columnDef.id === 'customer_phone') {
+        column.width = Math.max(headerText.length + 2, 15); // A moderate width for name and phone
+      } else if (columnDef.id.startsWith('custom_field_')) {
+         column.width = Math.max(headerText.length + 2, 40); // Wider for custom fields
+      }
+      else {
+        column.width = Math.max(headerText.length + 2, 25); // Default width for other columns
+      }
+    });
+
+    // Add data rows
+    selectedSortedRows.forEach(row => {
+      const rowData: (string | number | boolean | null)[] = [];
+      visibleColumns.forEach(column => {
         const value = row.getValue(column.id);
+        let formattedValue: string | number | boolean | null = value as string | number | boolean | null;
+
         // Format dates if they are date values
         if (column.id === 'start_time' || column.id === 'end_time') {
-          return format(new Date(value as string), "yyyy-MM-dd HH:mm:ss");
+          formattedValue = format(new Date(value as string), "yyyy-MM-dd HH:mm:ss");
         }
-        // Escape commas and quotes in the value
-        return `"${String(value).replace(/"/g, '""')}"`;
-      }).join(',');
-    }).join('\n');
 
-    // Combine header and rows
-    const csv = `${headers}\n${rows}`;
-    
-    // Create and download the file
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+        // Handle null or undefined explicitly for Excel
+        rowData.push(formattedValue === null || formattedValue === undefined ? '' : formattedValue);
+      });
+      worksheet.addRow(rowData);
+    });
+
+    // Generate Excel file buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Create a Blob and trigger download
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `reservations_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.setAttribute('download', `reservations_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url); // Clean up the URL object
+
+    setIsDownloading(false);
+  };
+
+  const handleDeleteSelected = async () => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    if (selectedRows.length === 0) {
+      toast.error("Nepasirinkta jokių rezervacijų");
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const selectedIds = selectedRows.map(row => row.original.id);
+      await deleteReservations(selectedIds);
+      toast.success(`Sėkmingai ištrinta ${selectedIds.length} rezervacija(ų)`);
+      setRowSelection({});
+      // Refresh the page to update the data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting reservations:', error);
+      toast.error("Nepavyko ištrinti rezervacijų");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -242,7 +311,7 @@ export function ReservationsTable({ data }: DataTableProps) {
       <div className="flex items-center justify-between py-4">
         <div className="flex items-center gap-4">
           <Input
-            placeholder="Filter by customer name..."
+            placeholder="Filtruoti pagal kliento vardą..."
             value={(table.getColumn("customer_name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("customer_name")?.setFilterValue(event.target.value)
@@ -254,12 +323,12 @@ export function ReservationsTable({ data }: DataTableProps) {
             onValueChange={handleFilterTypeChange}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by..." />
+              <SelectValue placeholder="Filtruoti pagal..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="date">Date & Time</SelectItem>
-              <SelectItem value="calendar">Calendar</SelectItem>
+              <SelectItem value="all">Visi</SelectItem>
+              <SelectItem value="date">Datos intervalas</SelectItem>
+              <SelectItem value="calendar">Kalendorius</SelectItem>
             </SelectContent>
           </Select>
 
@@ -286,7 +355,7 @@ export function ReservationsTable({ data }: DataTableProps) {
                         format(dateRange.from, "LLL dd, y")
                       )
                     ) : (
-                      <span>Pick a date range</span>
+                      <span>Pasirinkite datų intervalą</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -321,13 +390,13 @@ export function ReservationsTable({ data }: DataTableProps) {
               }}
             >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select calendar..." />
+                <SelectValue placeholder="Pasirinkite kalendorių" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Calendars</SelectItem>
+                <SelectItem value="all">Visi kalendoriai</SelectItem>
                 {calendarIds.map((id) => (
                   <SelectItem key={id} value={id}>
-                    Calendar {id}
+                    Kalendorius {id}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -336,8 +405,8 @@ export function ReservationsTable({ data }: DataTableProps) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto" disabled={isLoading}>
-                Columns
+              <Button variant="outline" className="ml-auto font-normal" disabled={isLoading || isDownloading}>
+                Stulpeliai
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -360,13 +429,34 @@ export function ReservationsTable({ data }: DataTableProps) {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            disabled={isLoading || table.getSelectedRowModel().rows.length === 0}
+{/*           <Button
+            variant="outline"
+            size="icon"
             onClick={handleDownload}
+            disabled={isLoading || isDownloading || table.getSelectedRowModel().rows.length === 0}
           >
-            <Download className="h-4 w-4" />
+            {isDownloading ? "..." : <Download className="h-4 w-4" />}
+          </Button> */}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDeleteSelected}
+            disabled={isLoading || isDeleting || table.getSelectedRowModel().rows.length === 0}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Ištrinti pasirinktus
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={isLoading || isDownloading || table.getSelectedRowModel().rows.length === 0}
+          >
+            {isDownloading ? "..." : <Download className="h-4 w-4 mr-2" />}
+            Eksportuoti
           </Button>
         </div>
       </div>
@@ -397,7 +487,7 @@ export function ReservationsTable({ data }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Loading...
+                  Kraunama...
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -422,7 +512,7 @@ export function ReservationsTable({ data }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Nieko nerasta.
                 </TableCell>
               </TableRow>
             )}
@@ -436,7 +526,7 @@ export function ReservationsTable({ data }: DataTableProps) {
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage() || isLoading}
         >
-          Previous
+          Ankstesnis
         </Button>
         <Button
           variant="outline"
@@ -444,7 +534,7 @@ export function ReservationsTable({ data }: DataTableProps) {
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage() || isLoading}
         >
-          Next
+          Kitas
         </Button>
       </div>
     </div>

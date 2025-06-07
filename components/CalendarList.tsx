@@ -8,7 +8,7 @@ import {
   getWorkingHoursById,
 } from "@/lib/actions";
 import Link from "next/link";
-import { CalendarPlus, Clock } from "lucide-react";
+import { Calendar, CalendarPlus, Clock } from "lucide-react";
 
 interface CalendarsWithWorkHours extends CalendarWithSettings {
   workHours: {
@@ -67,17 +67,23 @@ export default function CalendarList() {
   ];
 
   if (loading) {
-    return <div className="p-4">Kraunami kalendoriai...</div>;
+    return (
+      <div className="p-4 flex items-center justify-center min-h-[200px]">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Kraunami kalendoriai...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>;
+    return <div className="p-4 text-red-500">Klaida: {error}</div>;
   }
 
   return (
     <div className="p-4">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold mb-2">Available Calendars</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {calendars.map((calendar) => {
             const calendarWithHours = calendarsWithWorkHours.find(
@@ -92,7 +98,7 @@ export default function CalendarList() {
                         {calendar.name}
                       </h3>
                       {calendar.description && (
-                        <p className=" line-clamp-3">
+                        <p className=" line-clamp-3 min-h-[4.5em]">
                           {calendar.description}
                         </p>
                       )}
@@ -104,16 +110,21 @@ export default function CalendarList() {
                           {calendar.settings.map((setting, index) => (
                             <div key={index} className="mb-2">
                               <p className="flex items-center gap-2">
-                              <Clock size={16} />
-                                Slot duration: {setting.slot_duration_minutes}{" "}
-                                minutes
+                                <Clock size={16} />
+                                Laiko intervalas:{" "}
+                                {setting.slot_duration_minutes} min
                               </p>
                               <p className="flex items-center gap-2">
-                                           <CalendarPlus size={16}/>
-                                Multiple bookings:{" "}
+                                <CalendarPlus size={16} />
+                                Kelios rezervacijos:{" "}
                                 {setting.allow_multiple_bookings
-                                  ? "Allowed"
-                                  : "Not allowed"}
+                                  ? "Leidžiamos"
+                                  : "Neleidžiamos"}
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <Calendar size={16} />
+                                Įspėjimo laikas:{" "}
+                                {setting.min_booking_notice_days} d.
                               </p>
                             </div>
                           ))}

@@ -196,7 +196,7 @@ export function AppSidebar() {
                     <Calendar className="size-4" />
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-semibold">
+                    <span className="font-semibold truncate">
                       {selectedCalendar
                         ? selectedCalendar.name
                         : "Pasirinkite kalendorių"}
@@ -216,10 +216,12 @@ export function AppSidebar() {
                     key={calendar.id}
                     onClick={() => handleCalendarSelect(calendar)}
                     className={
-                      selectedCalendar?.id === calendar.id ? "bg-accent" : ""
+                      selectedCalendar?.id === calendar.id
+                        ? "bg-accent cursor-pointer my-1 py-2"
+                        : "cursor-pointer my-1 py-2"
                     }
                   >
-                    <div className="flex flex-col gap-0.5 leading-none">
+                    <div className="flex flex-col gap-1 leading-none">
                       <span className="font-semibold">{calendar.name}</span>
                       {/*                       {calendar.description && (
                         <span className="text-sm text-muted-foreground truncate">

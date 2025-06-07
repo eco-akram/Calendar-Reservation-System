@@ -68,7 +68,7 @@ export type CalendarWithSettings = {
     id: string;
     slot_duration_minutes: number;
     allow_multiple_bookings: boolean;
-    min_booking_notice_hours: number;
+    min_booking_notice_days: number;
     max_booking_days_ahead: number;
     custom_field_1_label: string | null;
     custom_field_2_label: string | null;
@@ -120,7 +120,7 @@ export type CalendarSettings = {
     id: string;
     slot_duration_minutes: number;
     allow_multiple_bookings: boolean;
-    min_booking_notice_hours: number;
+    min_booking_notice_days: number;
     max_booking_days_ahead: number;
     custom_field_1_label: string | null;
     custom_field_2_label: string | null;
@@ -294,6 +294,42 @@ export async function createReservation(data: CreateReservationData) {
     return reservation;
   } catch (error) {
     console.error('Error in createReservation:', error);
+    throw error;
+  }
+}
+
+export async function deleteReservation(id: string) {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting reservation:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error in deleteReservation:', error);
+    throw error;
+  }
+}
+
+export async function deleteReservations(ids: string[]) {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      console.error('Error deleting reservations:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error in deleteReservations:', error);
     throw error;
   }
 }
