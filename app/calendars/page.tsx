@@ -5,7 +5,6 @@ import CalendarsClient from "./CalendarsClient";
 export default async function CalendarsPage() {
   const supabase = await createClient();
 
-  // Verify user session
   const {
     data: { user },
     error,

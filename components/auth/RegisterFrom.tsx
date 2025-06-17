@@ -58,7 +58,7 @@ export default function RegisterForm() {
       toast.error(error);
     } else {
       toast.success("Registration successful! Please confirm your email.");
-      router.push("/"); // Redirect to the dashboard
+      router.push("/");
     }
   }
 

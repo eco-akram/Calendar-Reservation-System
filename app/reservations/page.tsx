@@ -5,7 +5,6 @@ import ReservationsClient from "./ReservationsClient";
 export default async function ReservationsPage() {
   const supabase = await createClient();
 
-  // Verify user session
   const {
     data: { user },
     error,

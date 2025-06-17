@@ -90,11 +90,9 @@ export function AppSidebar() {
         const data = await getCalendars();
         setCalendars(data);
 
-        // Get the current path
         const calendarMatch = pathname.match(/\/calendar\/([^\/]+)/);
 
         if (calendarMatch) {
-          // If we're on a calendar page, select that calendar
           const calendarId = calendarMatch[1];
           const currentCalendar = data.find((c) => c.id === calendarId);
           if (currentCalendar) {

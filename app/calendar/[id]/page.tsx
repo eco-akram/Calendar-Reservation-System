@@ -56,11 +56,9 @@ export default function CalendarPage() {
     const currentDate = new Date(startDate);
     currentDate.setHours(0, 0, 0, 0);
 
-    // Calculate the end date for the booking period
     const bookingEndDate = new Date(today);
     bookingEndDate.setDate(today.getDate() + bookingDays);
 
-    // Calculate the date for the minimum notice period
     const noticePeriodEndDate = new Date(today);
     noticePeriodEndDate.setDate(today.getDate() + noticeDays);
 
@@ -80,7 +78,6 @@ export default function CalendarPage() {
       const dateString = format(currentDate, "yyyy-MM-dd");
       const dayOfWeek = currentDate.getDay();
 
-      // Check if the date is available
       const isAfterNoticePeriod = currentDate >= noticePeriodEndDate;
       const isNotDisabled = !disabledDays.includes(dateString);
       const isWorkDay = !noWorkDays.includes(dayOfWeek);
@@ -98,11 +95,10 @@ export default function CalendarPage() {
         return currentDate;
       }
 
-      // Move to next day
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    console.log('No available date found, returning today');
+    console.log('No available date found');
     return today;
   };
 
@@ -117,7 +113,7 @@ export default function CalendarPage() {
       const fetchedDisabledDays = await getDisabledDays(id);
       const fetchedInterval = await getDayInterval(id);
 
-      //* SETTING STATES *//
+      //* STATES *//
       setCalendar(fetchedCalendar ?? undefined);
       setDisabledDays(
         fetchedDisabledDays.specialDates.map((date) =>
@@ -129,17 +125,14 @@ export default function CalendarPage() {
       setNoticeDays(fetchedDisabledDays.noticeDays);
       setInterval(fetchedInterval ?? 0);
 
-      // Set the initial selected date to the next available date
       const today = new Date();
       const nextAvailableDate = findNextAvailableDate(today);
-      console.log('Setting initial date to:', format(nextAvailableDate, 'yyyy-MM-dd'));
       setSelectedDate(nextAvailableDate);
       setSelectedDayOfWeek(nextAvailableDate.getDay());
     }
     fetchData();
   }, [params]);
 
-  // Add a new useEffect to handle initial date selection after states are set
   useEffect(() => {
     if (disabledDays.length > 0 || noWorkDays.length > 0 || bookingDays > 0 || noticeDays > 0) {
       const today = new Date();
@@ -168,7 +161,7 @@ export default function CalendarPage() {
       );
       const fetchedReservations = await checkForReservations(id, selectedDate);
 
-      //* SETTING STATES *//
+      //* STATES *//
       setWorkHours(fetchedWorkHours);
       setReservations(fetchedReservations);
 
@@ -211,14 +204,12 @@ export default function CalendarPage() {
     const slots = [];
     let currentTime = new Date(workHours.startTime);
 
-    // If the selected date is today, start from the current time
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDateStart = new Date(date);
     selectedDateStart.setHours(0, 0, 0, 0);
 
     if (selectedDateStart.getTime() === today.getTime()) {
-      // Round up to the next interval
       const now = new Date();
       const minutes = now.getMinutes();
       const roundedMinutes =
@@ -228,7 +219,6 @@ export default function CalendarPage() {
       currentTime.setSeconds(0);
       currentTime.setMilliseconds(0);
 
-      // If the rounded time is before work hours, start from work hours
       if (currentTime < workHours.startTime) {
         currentTime = new Date(workHours.startTime);
       }
@@ -237,12 +227,10 @@ export default function CalendarPage() {
     while (currentTime < new Date(workHours.endTime)) {
       const slotEndTime = addMinutes(currentTime, intervalMinutes);
 
-      // Only add slot if it doesn't overlap with reserved slots
       const isReserved = reservations.some((reservation) => {
         const reservationStart = new Date(reservation.start_time);
         const reservationEnd = new Date(reservation.end_time);
 
-        // A slot is reserved only if it exactly matches a reservation
         return (
           currentTime.getTime() === reservationStart.getTime() &&
           slotEndTime.getTime() === reservationEnd.getTime()
@@ -270,7 +258,6 @@ export default function CalendarPage() {
       const reservationStart = reservation.start_time;
       const reservationEnd = reservation.end_time;
 
-      // A slot is reserved only if it exactly matches a reservation
       return (
         slot.start.getTime() === reservationStart.getTime() &&
         slot.end.getTime() === reservationEnd.getTime()
@@ -319,7 +306,7 @@ export default function CalendarPage() {
 
   const handleConfirmSelection = () => {
     if (selectedSlots.length > 0) {
-      setSelectedSlot(selectedSlots[0]); // Pass first slot to dialog
+      setSelectedSlot(selectedSlots[0]);
       setDialogOpen(true);
     }
   };
@@ -407,24 +394,21 @@ export default function CalendarPage() {
               const today = new Date();
               today.setHours(0, 0, 0, 0);
 
-              // Calculate the end date for the booking period
               const bookingEndDate = new Date(today);
               bookingEndDate.setDate(today.getDate() + bookingDays);
 
-              // Calculate the date for the minimum notice period
               const noticePeriodEndDate = new Date(today);
               noticePeriodEndDate.setDate(today.getDate() + noticeDays);
 
               const dateString = format(date, "yyyy-MM-dd");
               const dayOfWeek = date.getDay();
 
-              // Disable dates based on conditions
               return (
-                date < today || // Disable dates before today
-                date < noticePeriodEndDate || // Disable dates within the notice period
-                date > bookingEndDate || // Disable dates after the booking end date
-                disabledDays.includes(dateString) || // Disable specific disabled dates
-                noWorkDays.includes(dayOfWeek) // Disable days with no work hours
+                date < today ||
+                date < noticePeriodEndDate ||
+                date > bookingEndDate ||
+                disabledDays.includes(dateString) ||
+                noWorkDays.includes(dayOfWeek)
               );
             }}
             className="rounded-md border shadow h-full w-full"

@@ -135,13 +135,11 @@ export function ReservationsTable({ data }: DataTableProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Get unique calendar IDs from data
   const calendarIds = useMemo(() => 
     Array.from(new Set(data.map((item) => item.calendar_id))),
     [data]
   );
 
-  // Filter data based on selected filters
   const filteredData = useMemo(() => {
     setIsLoading(true);
     const filtered = data.filter((item) => {
@@ -191,7 +189,7 @@ export function ReservationsTable({ data }: DataTableProps) {
   const handleFilterTypeChange = (value: string) => {
     setIsLoading(true);
     setFilterType(value);
-    // Reset other filters when changing filter type
+
     if (value !== "date") {
       setDateRange({ from: undefined, to: undefined });
     }
@@ -213,62 +211,52 @@ export function ReservationsTable({ data }: DataTableProps) {
 
     const visibleColumns = table.getAllColumns().filter(column => column.getIsVisible() && column.id !== 'select');
 
-    // Create a new workbook and worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Reservations');
 
-    // Add headers
     const headers = visibleColumns.map(column => column.columnDef.header as string);
     const headerRow = worksheet.addRow(headers);
 
-    // Apply bold font and background color to header cells
     headerRow.eachCell((cell) => {
       cell.font = { bold: true };
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFFFD966' }, // A light yellow color
+        fgColor: { argb: 'FFFFD966' },
       };
     });
 
-    // Set column widths
     worksheet.columns.forEach((column, i) => {
       const columnDef = visibleColumns[i];
       const headerText = headers[i];
 
-      // Set different widths based on column ID
       if (columnDef.id === 'customer_name' || columnDef.id === 'customer_phone') {
-        column.width = Math.max(headerText.length + 2, 15); // A moderate width for name and phone
+        column.width = Math.max(headerText.length + 2, 15);
       } else if (columnDef.id.startsWith('custom_field_')) {
-         column.width = Math.max(headerText.length + 2, 40); // Wider for custom fields
+         column.width = Math.max(headerText.length + 2, 40);
       }
       else {
-        column.width = Math.max(headerText.length + 2, 25); // Default width for other columns
+        column.width = Math.max(headerText.length + 2, 25);
       }
     });
 
-    // Add data rows
     selectedSortedRows.forEach(row => {
       const rowData: (string | number | boolean | null)[] = [];
       visibleColumns.forEach(column => {
         const value = row.getValue(column.id);
         let formattedValue: string | number | boolean | null = value as string | number | boolean | null;
 
-        // Format dates if they are date values
         if (column.id === 'start_time' || column.id === 'end_time') {
           formattedValue = format(new Date(value as string), "yyyy-MM-dd HH:mm:ss");
         }
 
-        // Handle null or undefined explicitly for Excel
         rowData.push(formattedValue === null || formattedValue === undefined ? '' : formattedValue);
       });
       worksheet.addRow(rowData);
     });
 
-    // Generate Excel file buffer
     const buffer = await workbook.xlsx.writeBuffer();
 
-    // Create a Blob and trigger download
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -278,7 +266,7 @@ export function ReservationsTable({ data }: DataTableProps) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url); // Clean up the URL object
+    URL.revokeObjectURL(url);
 
     setIsDownloading(false);
   };
@@ -296,7 +284,7 @@ export function ReservationsTable({ data }: DataTableProps) {
       await deleteReservations(selectedIds);
       toast.success(`Sėkmingai ištrinta ${selectedIds.length} rezervacija(ų)`);
       setRowSelection({});
-      // Refresh the page to update the data
+
       window.location.reload();
     } catch (error) {
       console.error('Error deleting reservations:', error);

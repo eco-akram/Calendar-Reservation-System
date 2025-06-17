@@ -81,8 +81,8 @@ export function ReservationDialog({
         custom_field_4: values.custom_field_4 ? `${settings.custom_field_4_label}: ${values.custom_field_4}` : null,
       };
 
-      // Create reservations for all selected slots
       const slotsToBook = selectedSlots.length > 0 ? selectedSlots : [slot];
+      
       const reservations = slotsToBook.map(slot => ({
         customer_name: values.customer_name,
         customer_email: values.customer_email,
@@ -93,18 +93,19 @@ export function ReservationDialog({
         ...customFields
       }));
 
-      // Create all reservations
       await Promise.all(reservations.map(reservation => createReservation(reservation)));
 
-      toast.success("Reservations Created", {
-        description: `Successfully created ${reservations.length} reservation${reservations.length > 1 ? 's' : ''}.`,
+      toast.success("Rezervacijos sukurtos", {
+        description: `Sėkmingai sukurta ${reservations.length} rezervacija${reservations.length > 1 ? 's' : ''}.`,
       });
 
       onOpenChange(false);
+
+      window.location.reload();
     } catch (error) {
       console.error('Error creating reservations:', error);
-      toast.error("Error", {
-        description: "Failed to create reservations. Please try again.",
+      toast.error("Klaida", {
+        description: error instanceof Error ? error.message : "Nepavyko sukurti rezervacijų. Bandykite dar kartą.",
       });
     } finally {
       setIsSubmitting(false);

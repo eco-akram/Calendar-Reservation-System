@@ -12,7 +12,7 @@ export default function ConfirmHandler() {
     if (emailConfirmed === "true") {
       toast.success("Your email has been successfully confirmed!");
     }
-  }, [searchParams]); // Ensure this runs when `searchParams` changes
+  }, [searchParams]);
 
-  return null; // This component doesn't render anything
+  return null;
 }

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { sendReservationEmail } from './email';
 
 export async function login(formData: FormData): Promise<string | null> {
   const supabase = await createClient();
@@ -17,15 +18,12 @@ export async function login(formData: FormData): Promise<string | null> {
     return error.message; 
   }
 
-  // Return null if login is successful
   return null;
 }
 
 export async function signup(formData: FormData): Promise<string | null> {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
@@ -251,7 +249,7 @@ export async function getAllReservations(): Promise<Reservations[]> {
 }
 
 interface CreateReservationData {
-  id?: string;  // Make id optional since it's auto-generated
+  id?: string;  
   calendar_id: string;
   start_time: Date;
   end_time: Date;
@@ -267,6 +265,18 @@ interface CreateReservationData {
 export async function createReservation(data: CreateReservationData) {
   try {
     const supabase = await createClient();
+    
+    const { data: calendar, error: calendarError } = await supabase
+      .from('calendars')
+      .select('name')
+      .eq('id', data.calendar_id)
+      .single();
+
+    if (calendarError) {
+      console.error('Error fetching calendar:', calendarError);
+      throw calendarError;
+    }
+
     const { data: reservation, error } = await supabase
       .from('bookings')
       .insert([
@@ -289,6 +299,22 @@ export async function createReservation(data: CreateReservationData) {
     if (error) {
       console.error('Error creating reservation:', error);
       throw error;
+    }
+
+    if (data.customer_email) {
+      try {
+        await sendReservationEmail({
+          to: data.customer_email,
+          reservation: {
+            customer_name: data.customer_name,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            calendar_name: calendar?.name || 'Kalendorius',
+          },
+        });
+      } catch (emailError) {
+        console.error('Error sending email notification:', emailError);
+      }
     }
 
     return reservation;
@@ -330,6 +356,258 @@ export async function deleteReservations(ids: string[]) {
     }
   } catch (error) {
     console.error('Error in deleteReservations:', error);
+    throw error;
+  }
+}
+
+interface CalendarFormData {
+  name: string;
+  description: string;
+  slot_duration_minutes: number;
+  allow_multiple_bookings: boolean;
+  min_booking_notice_days: number;
+  max_booking_days_ahead: number;
+  working_hours: {
+    [key: string]: {
+      start: string;
+      end: string;
+      enabled: boolean;
+    };
+  };
+  special_days: {
+    date: string;
+    is_working_day: boolean;
+    working_hours?: {
+      start: string;
+      end: string;
+    };
+  }[];
+}
+
+export async function createCalendar(data: CalendarFormData) {
+  try {
+    const supabase = await createClient();
+    
+    const { data: calendar, error: calendarError } = await supabase
+      .from('calendars')
+      .insert({
+        name: data.name,
+        description: data.description,
+      })
+      .select()
+      .single();
+
+    if (calendarError) {
+      console.error('Error creating calendar:', calendarError);
+      throw calendarError;
+    }
+
+    const { error: settingsError } = await supabase
+      .from('calendar_settings')
+      .insert({
+        calendar_id: calendar.id,
+        slot_duration_minutes: data.slot_duration_minutes,
+        allow_multiple_bookings: data.allow_multiple_bookings,
+        min_booking_notice_days: data.min_booking_notice_days,
+        max_booking_days_ahead: data.max_booking_days_ahead,
+      });
+
+    if (settingsError) {
+      console.error('Error creating calendar settings:', settingsError);
+      throw settingsError;
+    }
+
+    const workingHoursToInsert = Object.entries(data.working_hours)
+      .filter(([, hours]) => hours.enabled)
+      .map(([day, hours], index) => ({
+        calendar_id: calendar.id,
+        day_of_week: day === "sunday" ? 0 : index + 1,
+        start_time: hours.start,
+        end_time: hours.end,
+      }));
+
+    if (workingHoursToInsert.length > 0) {
+      const { error: workingHoursError } = await supabase
+        .from('working_hours')
+        .insert(workingHoursToInsert);
+
+      if (workingHoursError) {
+        console.error('Error creating working hours:', workingHoursError);
+        throw workingHoursError;
+      }
+    }
+
+    if (data.special_days.length > 0) {
+      const specialDaysToInsert = data.special_days.map(day => ({
+        calendar_id: calendar.id,
+        date: day.date,
+        is_working_day: day.is_working_day,
+        special_start_time: day.working_hours?.start || null,
+        special_end_time: day.working_hours?.end || null,
+      }));
+
+      const { error: specialDaysError } = await supabase
+        .from('special_days')
+        .insert(specialDaysToInsert);
+
+      if (specialDaysError) {
+        console.error('Error creating special days:', specialDaysError);
+        throw specialDaysError;
+      }
+    }
+
+    return calendar;
+  } catch (error) {
+    console.error('Error in createCalendar:', error);
+    throw error;
+  }
+}
+
+export async function deleteCalendar(id: string) {
+  try {
+    const supabase = await createClient();
+    
+    const { error: calendarError } = await supabase
+      .from('calendars')
+      .delete()
+      .eq('id', id)
+
+    if (calendarError) {
+      console.error('Error deleting calendar:', calendarError);
+      throw calendarError;
+    }
+
+    const { error: settingsError } = await supabase
+      .from('calendar_settings')
+      .delete()
+      .eq('calendar_id', id);
+
+    if (settingsError) {
+      console.error('Error deleting calendar settings:', settingsError);
+      throw settingsError;
+    }
+
+
+    const { error: workingHoursError } = await supabase
+      .from('working_hours')
+      .delete()
+      .eq('calendar_id', id);
+
+    if (workingHoursError) {
+      console.error('Error deleting working hours:', workingHoursError);
+      throw workingHoursError;
+    }
+
+    const { error: specialDaysError } = await supabase
+      .from('special_days')
+      .delete()
+      .eq('calendar_id', id);
+
+    if (specialDaysError) {
+      console.error('Error deleting special days:', specialDaysError);
+      throw specialDaysError;
+    }
+
+  } catch (error) {
+    console.error('Error in deleteCalendar:', error);
+    throw error;
+  }
+}
+
+export async function updateCalendar(id: string, data: CalendarFormData) {
+  try {
+    const supabase = await createClient();
+    
+    const { error: calendarError } = await supabase
+      .from('calendars')
+      .update({
+        name: data.name,
+        description: data.description,
+      })
+      .eq('id', id);
+
+    if (calendarError) {
+      console.error('Error updating calendar:', calendarError);
+      throw calendarError;
+    }
+
+    const { error: settingsError } = await supabase
+      .from('calendar_settings')
+      .update({
+        slot_duration_minutes: data.slot_duration_minutes,
+        allow_multiple_bookings: data.allow_multiple_bookings,
+        min_booking_notice_days: data.min_booking_notice_days,
+        max_booking_days_ahead: data.max_booking_days_ahead,
+      })
+      .eq('calendar_id', id);
+
+    if (settingsError) {
+      console.error('Error updating calendar settings:', settingsError);
+      throw settingsError;
+    }
+
+    const { error: deleteWorkingHoursError } = await supabase
+      .from('working_hours')
+      .delete()
+      .eq('calendar_id', id);
+
+    if (deleteWorkingHoursError) {
+      console.error('Error deleting working hours:', deleteWorkingHoursError);
+      throw deleteWorkingHoursError;
+    }
+
+    const workingHoursToInsert = Object.entries(data.working_hours)
+      .filter(([, hours]) => hours.enabled)
+      .map(([day, hours], index) => ({
+        calendar_id: id,
+        day_of_week: day === "sunday" ? 0 : index + 1,
+        start_time: hours.start,
+        end_time: hours.end,
+      }));
+
+    if (workingHoursToInsert.length > 0) {
+      const { error: workingHoursError } = await supabase
+        .from('working_hours')
+        .insert(workingHoursToInsert);
+
+      if (workingHoursError) {
+        console.error('Error creating working hours:', workingHoursError);
+        throw workingHoursError;
+      }
+    }
+
+    const { error: deleteSpecialDaysError } = await supabase
+      .from('special_days')
+      .delete()
+      .eq('calendar_id', id);
+
+    if (deleteSpecialDaysError) {
+      console.error('Error deleting special days:', deleteSpecialDaysError);
+      throw deleteSpecialDaysError;
+    }
+
+    if (data.special_days.length > 0) {
+      const specialDaysToInsert = data.special_days.map(day => ({
+        calendar_id: id,
+        date: day.date,
+        is_working_day: day.is_working_day,
+        special_start_time: day.working_hours?.start || null,
+        special_end_time: day.working_hours?.end || null,
+      }));
+
+      const { error: specialDaysError } = await supabase
+        .from('special_days')
+        .insert(specialDaysToInsert);
+
+      if (specialDaysError) {
+        console.error('Error creating special days:', specialDaysError);
+        throw specialDaysError;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateCalendar:', error);
     throw error;
   }
 }

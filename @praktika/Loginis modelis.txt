@@ -1,0 +1,50 @@
+Booking
+
+id (UUID, Primary Key)
+calendar_id (UUID, Foreign Key)
+start_time (Timestamp with Time Zone)
+end_time (Timestamp with Time Zone)
+customer_name (Text)
+customer_email (Text)
+customer_phone (Text)
+custom_field_1 (Text)
+custom_field_2 (Text)
+custom_field_3 (Text)
+custom_field_4 (Text)
+
+Calendar
+
+id (UUID, Primary Key)
+name (Text)
+description (Text)
+
+Calendar Settings
+
+id (UUID, Primary Key)
+calendar_id (UUID, Foreign Key)
+slot_duration_minutes (Integer)
+allow_multiple_bookings (Boolean)
+min_booking_notice_days (Integer)
+max_booking_days_ahead (Integer)
+custom_field_1_label (Text)
+custom_field_2_label (Text)
+custom_field_3_label (Text)
+custom_field_4_label (Text)
+
+Special Days
+
+id (UUID, Primary Key)
+calendar_id (UUID, Foreign Key)
+date (Date)
+is_working_day (Boolean)
+special_start_time (Time without Time Zone)
+special_end_time (Time without Time Zone)
+description (Text)
+
+Working Hours
+
+id (UUID, Primary Key)
+calendar_id (UUID, Foreign Key)
+day_of_week (Integer)
+start_time (Time without Time Zone)
+end_time (Time without Time Zone)

@@ -14,7 +14,6 @@ export async function getDayInterval(calendarId: string) {
   const slotDuration = settings?.slot_duration_minutes;
   return slotDuration;
 
-  // Output: 30
 }
 
 /* export async function getDayWorkHours(calendarId: string, dayOfWeek: number) {
@@ -45,7 +44,6 @@ export async function getDayWorkHours(
   const timeStart = dayWorkingHours?.start_time || "08:00";
   const timeEnd = dayWorkingHours?.end_time || "20:00";
 
-  // Ensure we have a date to attach to time strings
   const dateStr = selectedDate
     ? format(selectedDate, "yyyy-MM-dd")
     : format(new Date(), "yyyy-MM-dd");

@@ -27,7 +27,6 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const router = useRouter();
-  //* 1. Define your form.
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,8 +35,6 @@ export default function LoginForm() {
       password: "",
     },
   });
-
-  //* 2. Define a submit handler.
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formData = new FormData();
@@ -49,7 +46,7 @@ export default function LoginForm() {
       toast.error(error); 
     } else {
       toast.success("Login successful!");
-      router.push("/"); // Redirect to the dashboard
+      router.push("/");
     }
   }
 
