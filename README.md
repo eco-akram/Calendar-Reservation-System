@@ -73,7 +73,7 @@ The application uses a relational database with the following main entities:
 1. **Clone the repository**
    ```bash
    git clone https://github.com/eco-akram/calendar-reservation
-   cd calendar-reservation
+   cd Calendar-Reservation-System
    ```
 
 2. **Install dependencies**
