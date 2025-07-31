@@ -15,7 +15,7 @@ export default async function page() {
 
   return (
     <main className="w-full rounded-3xl m-2 bg-background">
-      <Header title="Admin Login" />
+      <Header title="Prisijungimas" />
       <div className="flex flex-col gap-4 p-4 mt-50">
         <LoginForm />
       </div>

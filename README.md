@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Calendar Reservation System
 
-## Getting Started
+A modern, full-stack calendar reservation application built with Next.js 15, TypeScript, and Supabase. This application allows users to create and manage calendars, set up booking slots, and handle reservations with email notifications.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Core Functionality
+- **Multi-Calendar Management**: Create and manage multiple calendars with different settings
+- **Flexible Booking System**: Configurable time slots, booking limits, and notice periods
+- **Real-time Availability**: Dynamic time slot generation based on working hours and existing reservations
+- **Email Notifications**: Automatic email confirmations for bookings using Resend
+- **Admin Dashboard**: Comprehensive admin interface for managing calendars and reservations
+- **Responsive Design**: Mobile-friendly interface with modern UI components
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Calendar Features
+- **Working Hours**: Set custom working hours for each day of the week
+- **Special Days**: Configure special dates with different working hours or closures
+- **Booking Rules**: 
+  - Minimum notice period (days in advance)
+  - Maximum booking days ahead
+  - Slot duration configuration
+  - Multiple booking options
+- **Custom Fields**: Up to 4 customizable fields for additional booking information
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### User Experience
+- **Interactive Calendar**: Visual date selection with availability indicators
+- **Time Slot Selection**: Easy-to-use time slot picker with real-time availability
+- **Form Validation**: Comprehensive form validation using React Hook Form and Zod
+- **Dark/Light Theme**: Theme switching with system preference detection
+- **Loading States**: Smooth loading animations and skeleton screens
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Learn More
+### Frontend
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first CSS framework
+- **Shad/cn** - Accessible components
+- **React Hook Form** - Form state management
+- **Zod** - Schema validation
+- **Lucide React** - Icon library
+- **date-fns** - Date manipulation utilities
 
-To learn more about Next.js, take a look at the following resources:
+### Backend & Database
+- **Supabase** - Backend-as-a-Service (PostgreSQL, Auth, Real-time)
+- **MySQL** - Database connectivity
+- **Resend** - Email service for notifications
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Development Tools
+- **ESLint** - Code linting
+- **Turbopack** - Fast bundler for development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🗄️ Database Schema
 
-## Deploy on Vercel
+The application uses a relational database with the following main entities:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **calendars**: Main calendar information
+- **calendar_settings**: Calendar configuration and rules
+- **bookings**: Reservation records
+- **working_hours**: Daily working hour schedules
+- **special_days**: Special dates with custom hours
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm, yarn, or pnpm
+- Supabase account
+- Resend account (for email notifications)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd calendar-reservation
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   Create a `.env.local` file with the following variables:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   RESEND_API_KEY=your_resend_api_key
+   ```
+
+4. **Database Setup**
+   - Set up a Supabase project
+   - Run the SQL schema from `@utils/supabase/Fizinis modelis.sql`
+   - Configure authentication settings in Supabase
+
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 📖 Usage
+
+### For Administrators
+1. **Login** to the admin panel
+2. **Create Calendars** with custom settings and working hours
+3. **Manage Reservations** through the admin dashboard
+
+### For End Users
+1. **Browse Available Calendars** on the home page
+2. **Select a Calendar** to view available dates
+3. **Choose a Date** from the interactive calendar
+4. **Pick a Time Slot** from available options
+5. **Fill in Booking Details** and submit
+6. **Receive Email Confirmation** automatically
+
+## 🔧 Configuration
+
+### Calendar Settings
+- **Slot Duration**: Set time slot length (default: 30 minutes)
+- **Booking Limits**: Configure minimum notice and maximum advance booking
+- **Working Hours**: Define daily schedules
+- **Special Days**: Set holidays or special working hours
+- **Custom Fields**: Add up to 4 custom form fields
+
+### Email Configuration
+- Configure Resend API for email notifications
+- Customize email templates in `components/email/`
+- Set up email routing and delivery
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+Built with ❤️
