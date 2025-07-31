@@ -72,7 +72,7 @@ The application uses a relational database with the following main entities:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/eco-akram/calendar-reservation
    cd calendar-reservation
    ```
 
@@ -136,4 +136,4 @@ The application uses a relational database with the following main entities:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-Built with ❤️
+Built with ❤️ by eco.akram
