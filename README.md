@@ -1,5 +1,31 @@
-# Calendar Reservation System
+<div align="center">
 
+<img src="public/calendar.png" width="30%" style="position: relative; top: 0; right: 0;" alt="Project Logo"/>
+
+# CALENDAR-RESERVATION-SYSTEM
+
+<em></em>
+
+<!-- BADGES -->
+<!-- local repository, no metadata badges. -->
+
+<em>Built with the tools and technologies:</em>
+
+<img src="https://img.shields.io/badge/JSON-000000.svg?style=default&logo=JSON&logoColor=white" alt="JSON">
+<img src="https://img.shields.io/badge/Resend-000000.svg?style=default&logo=Resend&logoColor=white" alt="Resend">
+<img src="https://img.shields.io/badge/npm-CB3837.svg?style=default&logo=npm&logoColor=white" alt="npm">
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E.svg?style=default&logo=JavaScript&logoColor=black" alt="JavaScript">
+<img src="https://img.shields.io/badge/React-61DAFB.svg?style=default&logo=React&logoColor=black" alt="React">
+<img src="https://img.shields.io/badge/TypeScript-3178C6.svg?style=default&logo=TypeScript&logoColor=white" alt="TypeScript">
+<br>
+<img src="https://img.shields.io/badge/Zod-3E67B1.svg?style=default&logo=Zod&logoColor=white" alt="Zod">
+<img src="https://img.shields.io/badge/ESLint-4B32C3.svg?style=default&logo=ESLint&logoColor=white" alt="ESLint">
+<img src="https://img.shields.io/badge/CSS-663399.svg?style=default&logo=CSS&logoColor=white" alt="CSS">
+<img src="https://img.shields.io/badge/datefns-770C56.svg?style=default&logo=date-fns&logoColor=white" alt="datefns">
+<img src="https://img.shields.io/badge/React%20Hook%20Form-EC5990.svg?style=default&logo=React-Hook-Form&logoColor=white" alt="React%20Hook%20Form">
+
+</div>
+<br>
 A modern, full-stack calendar reservation application built with Next.js 15, TypeScript, and Supabase. This application allows users to create and manage calendars, set up booking slots, and handle reservations with email notifications.
 
 ## 🚀 Features
