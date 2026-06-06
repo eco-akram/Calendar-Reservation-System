@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/calendar.png" width="30%" style="position: relative; top: 0; right: 0;" alt="Project Logo"/>
+<img src="public/calendar-logo.png" width="30%" style="position: relative; top: 0; right: 0;" alt="Project Logo"/>
 
 # CALENDAR-RESERVATION-SYSTEM
 
